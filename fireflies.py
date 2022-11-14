@@ -1,6 +1,7 @@
 # https://github.com/benevpi/pico_python_ws2812b/tree/main/examples
 import time
 import ws2812b
+import neopixel
 import random
 
 numpix = 60  # Number of NeoPixels
