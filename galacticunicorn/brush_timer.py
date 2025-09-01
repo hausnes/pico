@@ -20,10 +20,16 @@ gu.set_brightness(0.5)
 PEN_WHITE = graphics.create_pen(0, 0, 0)
 PEN_BLACK = graphics.create_pen(255, 255, 255)
 
+# additional colors for the lightsaber animation
+PEN_BG = graphics.create_pen(0, 0, 0)          # true black background
+PEN_RED = graphics.create_pen(255, 0, 0)       # bright core
+PEN_RED_MID = graphics.create_pen(180, 0, 0)   # mid glow
+PEN_RED_LOW = graphics.create_pen(90, 0, 0)    # low glow
+
 TEXT = "Pusse!"
 
 # countdown length (seconds)
-BRUSH_SECONDS = 90
+BRUSH_SECONDS = 120
 COUNTDOWN_SCALE = 1
 
 
@@ -87,23 +93,55 @@ def play_fanfare():
         ]
 
         def draw_frame(frame):
-            # simple pulsing border animation
-            graphics.set_pen(PEN_WHITE)
+            # Horizontal lightsaber: black background, bright red core, glow above/below and flickering end flares
+            graphics.set_pen(PEN_BG)
             graphics.clear()
-            thickness = 1 + (frame % 3)
-            graphics.set_pen(PEN_BLACK)
-            w = width
-            h = height
-            # top and bottom
-            for t in range(thickness):
-                for x in range(t, w - t):
-                    graphics.pixel(x, t)
-                    graphics.pixel(x, h - 1 - t)
-            # left and right
-            for t in range(thickness):
-                for y in range(t, h - t):
-                    graphics.pixel(t, y)
-                    graphics.pixel(w - 1 - t, y)
+
+            cy = int(height / 2)
+            left = 1
+            right = width - 2
+
+            # low outer glow (two pixels away)
+            graphics.set_pen(PEN_RED_LOW)
+            if cy - 2 >= 0:
+                for x in range(left + 1, right - 1):
+                    graphics.pixel(x, cy - 2)
+            if cy + 2 < height:
+                for x in range(left + 1, right - 1):
+                    graphics.pixel(x, cy + 2)
+
+            # mid glow (one pixel away)
+            graphics.set_pen(PEN_RED_MID)
+            if cy - 1 >= 0:
+                for x in range(left, right + 1):
+                    graphics.pixel(x, cy - 1)
+            if cy + 1 < height:
+                for x in range(left, right + 1):
+                    graphics.pixel(x, cy + 1)
+
+            # bright core
+            graphics.set_pen(PEN_RED)
+            for x in range(left, right + 1):
+                graphics.pixel(x, cy)
+
+            # flickering end flares (small bursts at each end)
+            flare_on = (frame % 4) != 0
+            if flare_on:
+                fx = left
+                for dx in range(0, 3):
+                    for dy in (-1, 0, 1):
+                        px = fx + dx
+                        py = cy + dy
+                        if 0 <= px < width and 0 <= py < height:
+                            graphics.pixel(px, py)
+                fx = right
+                for dx in range(-2, 1):
+                    for dy in (-1, 0, 1):
+                        px = fx + dx
+                        py = cy + dy
+                        if 0 <= px < width and 0 <= py < height:
+                            graphics.pixel(px, py)
+
             gu.update(graphics)
 
         for freq, dur in notes:
